@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login</title>
+  <link rel="stylesheet" type="text/css" href="login.css">
+</head>
+<body>
+  <section id="headerSection">
+    <h1 class="title">HBA</h1>
+  </section>   
+    <div class="container">
+        <h1>Login</h1>
+        <form autocomplete="off" action="/authLogin" method="post">
+            <div class="inputBox">
+                <input type="text" required id="firstname" name="firstname">
+                <label for="">First Name</label>
+            </div>
+            <div class="inputBox">
+                <input type="text" required id="lastname" name="lastname">
+                <label for="">Last Name</label>
+            </div>
+            <div class="inputBox">
+                <input type="password" required id="passcode" name="passcode">
+                <label for="">Password</label>
+            </div>
+            <a href="register.html" class="link">Don't have an account?</a>
+            <a href="admin.html" class="link">Are an admin?</a>
+            <button type="submit" class="loginButton" onclick="login()">Log In</button>
+        </form>
+    </div>
+  </body>
+</html>

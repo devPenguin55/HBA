@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Login</title>
+  <link rel="stylesheet" type="text/css" href="admin.css">
+</head>
+<body>
+  <section id="headerSection">
+    <h1 class="title">HBA</h1>
+  </section>   
+    <div class="container">
+        <h1>Admin Login</h1>
+        <form autocomplete="off" action="/authAdmin" method="post">
+            <div class="inputBox">
+                <input type="text" required id="username" name="username">
+                <label for="">Username</label>
+            </div>
+            <div class="inputBox">
+                <input type="password" required id="passcode" name="passcode">
+                <label for="">Password</label>
+            </div>
+            <a href="login.html" class="link">Not an admin?</a>
+            <button type="submit" class="loginButton" onclick="login()">Log In</button>
+        </form>
+    </div>
+  </body>
+</html>

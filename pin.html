@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OTP Verification</title>
+  <link rel="stylesheet" href="pin.css">
+</head>
+<body>
+  <section id="headerSection">
+    <h1 class="title">HBA</h1>
+  </section> 
+  <h1>Enter your OTP to register</h1>
+  <form autocomplete="off" action="/registerAuthOtp" method="post">
+    <div class="pin-input">
+      <input type="text" maxlength="1" pattern="[0-9]" required placeholder="">
+      <input type="text" maxlength="1" pattern="[0-9]" required placeholder="">
+      <input type="text" maxlength="1" pattern="[0-9]" required placeholder="">
+      <input type="text" maxlength="1" pattern="[0-9]" required placeholder="">
+      <input type="text" maxlength="1" pattern="[0-9]" required placeholder="">
+      <input type="text" maxlength="1" pattern="[0-9]" required placeholder="">
+    </div>
+    <div class="submit-button">
+      <input type="submit" value="Submit">
+    </div>
+  </form>
+  <h5>You should have gotten a email containing your OTP</h5>
+  <h6>Otherwise, go to HBA to get your email entered for signup</h6>
+</body>
+</html>

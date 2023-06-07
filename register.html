@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Register</title>
+  <link rel="stylesheet" type="text/css" href="register.css">
+</head>
+<body>
+  <section id="headerSection">
+    <h1 class="title">HBA</h1>
+  </section> 
+  <div class="container">
+    <h1>Register</h1>
+    <form autocomplete="off" action="/authRegister" method="post">
+        <div class="inputBox">
+            <input type="text" required id="firstname" name="firstname">
+            <label for="">First Name</label>
+        </div>
+        <div class="inputBox">
+          <input type="text" required id="lastname" name="lastname">
+          <label for="">Last Name</label>
+      </div>
+        <div class="inputBox">
+            <input type="tel" required id="email" name="email">
+            <label for="">Email</label>
+        </div>
+        <a href="login.html" class="link">Already have an account?</a>
+        <button type="submit" class="loginButton">Register</button>
+    </form>
+  </div>
+  </body>
+</html>

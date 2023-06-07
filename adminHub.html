@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Hub</title>
+  <link rel="stylesheet" type="text/css" href="adminHub.css">
+</head>
+<body>
+  <section id="headerSection">
+    <h1 class="title">HBA Admin Hub</h1>
+  </section> 
+    <div class="bigcontainer">
+        <div class="container">
+            <h1>Add Member</h1>
+            <form autocomplete="off" action="/addMember" method="post">
+                <div class="inputBox">
+                    <input type="text" required id="firstname" name="firstname">
+                    <label for="">First Name</label>
+                </div>
+                <div class="inputBox">
+                    <input type="text" required id="lastname" name="lastname">
+                    <label for="">Last Name</label>
+                </div>
+                <div class="inputBox">
+                    <input type="tel" required id="email" name="email">
+                    <label for="">Email</label>
+                </div>
+                <button type="submit" class="loginButton" onclick="login()">Add</button>
+            </form>
+        </div>
+        <form action="/memberList" method="post" class="form1">
+            <button type="submit" class="seeButton">List Of Members</button>
+        </form>
+        <div class="container">
+            <h1>Delete Member</h1>
+            <form autocomplete="off" action="/deleteMember" method="post">
+                <div class="inputBox">
+                    <input type="text" required id="firstname" name="firstname">
+                    <label for="">First Name</label>
+                </div>
+                <div class="inputBox">
+                    <input type="text" required id="lastname" name="lastname">
+                    <label for="">Last Name</label>
+                </div>
+                <div class="inputBox">
+                    <input type="tel" required id="email" name="email">
+                    <label for="">Email</label>
+                </div>
+                <button type="submit" class="loginButton" onclick="login()">Delete</button>
+            </form>
+        </div>
+    </div>
+  </body>
+</html>
