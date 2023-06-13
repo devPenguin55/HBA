@@ -21,15 +21,20 @@
                     <label for="">Last Name</label>
                 </div>
                 <div class="inputBox">
-                    <input type="tel" required id="email" name="email">
+                    <input type="email" required id="email" name="email">
                     <label for="">Email</label>
                 </div>
                 <button type="submit" class="loginButton" onclick="login()">Add</button>
             </form>
         </div>
-        <form action="/memberList" method="post" class="form1">
-            <button type="submit" class="seeButton">List Of Members</button>
-        </form>
+        <div class="bigcontainer2">
+            <form action="/memberList" method="post" class="form1">
+              <button type="submit" class="seeButton">List Of Members</button>
+            </form>
+            <form action="/userList" method="post" class="form2">
+              <button type="submit" class="seeButton1">List Of Users</button>
+            </form>
+          </div>
         <div class="container">
             <h1>Delete Member</h1>
             <form autocomplete="off" action="/deleteMember" method="post">
@@ -42,7 +47,7 @@
                     <label for="">Last Name</label>
                 </div>
                 <div class="inputBox">
-                    <input type="tel" required id="email" name="email">
+                    <input type="email" required id="email" name="email">
                     <label for="">Email</label>
                 </div>
                 <button type="submit" class="loginButton" onclick="login()">Delete</button>

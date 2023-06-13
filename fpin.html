@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OTP Verification</title>
+  <link rel="stylesheet" href="fpin.css">
+</head>
+<body>
+  <section id="headerSection">
+    <h1 class="title">HBA</h1>
+  </section> 
+  <h1>Enter your OTP to register</h1>
+  <form autocomplete="off" action="/fAuthOtp" method="post">
+    <div class="pin-input">
+      <input type="text" maxlength="1" pattern="[0-9]" required placeholder="" name="p1" oninput="moveToNextInput(event, 'p2')" onkeydown="handleBackspace(event, 'p1')">
+      <input type="text" maxlength="1" pattern="[0-9]" required placeholder="" name="p2" oninput="moveToNextInput(event, 'p3')" onkeydown="handleBackspace(event, 'p1')">
+      <input type="text" maxlength="1" pattern="[0-9]" required placeholder="" name="p3" oninput="moveToNextInput(event, 'p4')" onkeydown="handleBackspace(event, 'p2')">
+      <input type="text" maxlength="1" pattern="[0-9]" required placeholder="" name="p4" oninput="moveToNextInput(event, 'p5')" onkeydown="handleBackspace(event, 'p3')">
+      <input type="text" maxlength="1" pattern="[0-9]" required placeholder="" name="p5" oninput="moveToNextInput(event, 'p6')" onkeydown="handleBackspace(event, 'p4')">
+      <input type="text" maxlength="1" pattern="[0-9]" required placeholder="" name="p6" onkeydown="handleBackspace(event, 'p5')">
+    </div>
+      <div class="submit-button">
+      <input type="submit" value="Submit">
+    </div>
+  </form>
+  <h5>You should have gotten a email containing your OTP</h5>
+  <h6>Otherwise, go to HBA to get your email entered for signup</h6>
+  <script src="fpin.js"></script>
+</body>
+</html>

@@ -199,8 +199,40 @@ h1 {
     color: rgb(220, 236, 255);
 }
 
+.seeButton1 {
+    padding: 10px 20px;
+    background-color: rgb(23, 90, 167);
+    border-radius: 20px;
+    width: 100%;
+    height: 40px;
+    border: none;
+    cursor: pointer;
+    color: rgb(172, 211, 255);
+    font-size: 100%;
+    font-weight:600;
+    border: 2px solid rgb(76, 143, 210);
+    transition: background-color 0.3s ease, color 0.3s ease
+}
+.seeButton1:hover {
+    background-color: rgb(78, 146, 215);
+    color: rgb(220, 236, 255);
+}
+.bigcontainer2 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 20px;
+  }
 
 .form1 {
-    align-self: center; /* Position the button at the bottom of the flex container */
-}    
+    margin-top: 2.5px;
+  }
+
+  .form2 {
+    margin-top: -115px;
+  }
+
+
+
 
