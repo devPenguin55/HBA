@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Home</title>
+  <link rel="stylesheet" type="text/css" href="homeOptions.css">
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <style>
+    /* Add custom styles for the calendar popup */
+    .calendar-popup {
+      display: none;
+      position: fixed;
+      top: 280px;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgb(45, 89, 165);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      border-radius:30px;
+      padding: 20px;
+      z-index: 9999;
+      border: 5px solid rgb(69, 119, 205);
+    }
+
+    .calendar-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .flatpickr-calendar {
+      width: 100% !important;
+      border: none !important;
+    }
+    /* Override Flatpickr styles */
+    .flatpickr-calendar {
+      background-color: rgb(45, 89, 165); /* Change the background color */
+      color: #fb0808; /* Change the font color */
+      font-family: Arial, sans-serif; /* Change the font family */
+    }
+
+    .flatpickr-month {
+      background-color: #000000; /* Change the background color of the month header */
+      color: #d31d1d; /* Change the font color of the month header */
+    }
+
+    .flatpickr-day.selected {
+      background-color: rgb(71, 117, 197); /* Change the background color of the selected date */
+      color: #fff; /* Change the font color of the selected date */
+      border: 2px solid rgb(99, 150, 237);
+    }
+
+    .flatpickr-day.today {
+      border: 2px solid rgb(54, 102, 185); /* Add a border to the current date */
+    }
+    /* //////////////////////*/
+    .flatpickr-day  {
+      color: rgb(131, 172, 241);
+    }
+    span.flatpickr-weekday {
+      color: rgb(99, 145, 224);
+    }
+    span.flatpickr-day.flatpickr-disabled, span.flatpickr-day.flatpickr-disabled:hover { /* Optional: Handle hover state if you want to customize it */
+      color: rgb(88, 134, 215); /* Set the text color for disabled days */
+      
+    }
+    div.flatpickr-current-month {
+      color: rgb(186, 207, 243);
+      pointer-events: none;
+      margin-top: -10px;
+      padding: 10px;
+    }
+    span.arrowUp, span.arrowDown{
+      display: none;
+    }
+    .flatpickr-current-month input.cur-year[disabled], .flatpickr-current-month input.cur-year[disabled]:hover {
+      color: rgb(186, 207, 243);
+    }
+    .flatpickr-current-month input.cur-year[disabled], .flatpickr-current-month input.cur-year[disabled]:hover {
+      background-color: rgb(45, 89, 165);
+    }
+    .flatpickr-calendar {
+      box-shadow: none;
+    }
+    .flatpickr-month{
+      text-align: center;
+      left: -7px;
+    }
+    .flatpickr-current-month:hover .flatpickr-monthDropdown-months:hover {
+      background-color: rgb(45, 89, 165);
+    }
+  </style>
+</head>
+<body>
+  <section id="headerSection">
+    <h1 class="title">HBA</h1>
+  </section>   
+  <div class="container">
+    <h1 id="welcome"">Welcome Back!</h1>
+    <button id="calendarButton" class="buttons">Calendar</button>
+    <form autocomplete="off" action="/reserveCourt" method="get">
+      <button type="submit" class="buttons">Reserve Court</button>
+    </form>
+    <button id='sched' type="submit" class="buttons" onclick="scheduleMake()">View Schedule</button>
+  </div>
+  
+  <!-- Calendar popup container -->
+  <div class="calendar-popup" id="calendarPopup">
+    <div class="calendar-wrapper">
+      <!-- Flatpickr calendar will be inserted here -->
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script>
+    const calendarButton = document.getElementById('calendarButton');
+    const calendarPopup = document.getElementById('calendarPopup');
+    const calendarWrapper = document.querySelector('.calendar-wrapper');
+    let y = new Date("today")
+    const calendarInstance = flatpickr(calendarWrapper, {
+      inline: true, // Show the calendar inline within the element
+      minDate: "today", // Prevent selecting dates in the past
+      maxDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0), // Prevent selecting dates after the current month
+      minTime: "today", // Prevent selecting times in the past
+      enableTime: false, // Enable time selection
+      dateFormat: "Y-m-d H:i", // Format of the selected date and time
+      
+      onChange: function(selectedDates, dateStr, instance) {
+        // Handle the selected date here
+        console.log(selectedDates[0]);
+        y = selectedDates[0]
+        // You can store the selected date in a variable or pass it to your server-side code
+      }
+    });
+    // Create a link to the '/reserve' route
+    // Set the href to the route you want to navigate to
+    // Add an event listener to the container to handle the click event
+    function scheduleMake() {
+        // Redirect the user to the '/schedule' route when the container is clicked
+        let dataToPass = {
+          date1:y
+        };
+        window.location.href = `/schedule?data=${encodeURIComponent(JSON.stringify(dataToPass))}`;
+        
+    };
+
+    // Function to show the calendar popup
+    function openCalendarPopup() {
+      calendarPopup.style.display = 'block';
+    }
+
+    // Function to close the calendar popup
+    function closeCalendarPopup() {
+      calendarPopup.style.display = 'none';
+    }
+
+    // Open the calendar popup when the "Calendar" button is clicked
+    calendarButton.addEventListener('click', function(event) {
+      openCalendarPopup();
+      event.stopPropagation();
+    });
+
+    // Close the calendar popup when clicking outside of it
+    window.addEventListener("click", function(event) {
+      if (
+        event.target !== calendarPopup && 
+        event.target !== calendarButton &&
+        !calendarPopup.contains(event.target) // Check if the click is not inside the popup
+      ) {
+        closeCalendarPopup();
+      }
+    });
+  </script>
+</body>
+</html>

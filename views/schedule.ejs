@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Schedule</title>
+        <style>
+            body {
+                font-family: Segoe UI;
+                font-weight: 200;
+            }
+
+            ::selection {
+                background-color: rgb(103, 157, 220);;
+            }
+
+            body::-webkit-scrollbar{
+                display: none;
+            }
+
+            :root {
+                --headerColor: rgb(23, 90, 167);
+            }
+
+            #headerSection {
+                background-color: rgb(6, 59, 119);
+                width: 100%;
+                height: 60px;
+                margin-left: -8px;
+                padding-right: 18px;
+                margin-top: -20px;
+                padding-top: 10px;
+                padding-bottom: 40px;
+                position: relative;
+            }
+
+            #headerSection::before {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                top: 110px;
+                width: 100%;
+                height: 5px;
+                background-color: var(--headerColor);
+                border-radius: 50%;
+                transform: scaleY(8) scaleX(1);
+                z-index: 1;
+            }
+
+            #headerSection::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                top: 103px;
+                width: 100%;
+                height: 3px;
+                background-color: rgb(49, 116, 192);
+                border-radius: 50%;
+                transform: scaleY(11) scaleX(1);
+                z-index: 0;
+            }
+
+            .header {
+                text-align: center;
+                font-size: 250%;
+                margin-top: 0px;
+                padding-top: 10px;
+                color: rgb(192, 220, 251);
+            }
+            .title3 {
+                text-align: center;
+                font-size: 250%;
+                font-weight: 600;
+                margin-top: 0px;
+                padding-top: 10px;
+                color: rgb(192, 220, 251);
+                z-index: 3;
+                margin-top: -40px;
+            }
+            #scheduleSection {
+                padding-top: 10px;
+                z-index: 2;
+                display: grid;
+                background-color: var(--headerColor);
+                width: 100%;
+                min-height: 100vh;
+                margin-bottom: -20px;
+                margin-left: -8px;
+                padding-right: 18px;
+                justify-items: center;
+                align-items: center;
+                grid-template-columns: repeat(auto-fit, minmax(100%, 20px));
+                grid-auto-rows: 40px;
+                grid-row-gap: 0px;
+                grid-column-gap: 20px; 
+                /* text-align: center; */
+    
+            }
+
+            .titleContainer {
+                z-index: 2;
+                margin: 0px;
+                padding: 0px;
+                padding-top: 3px;
+                padding-bottom: 8px;
+                border: none;
+                width: 600px;
+                align-items: center;
+                /* justify-items: center; */
+                color: rgb(175, 208, 244);
+                font-weight: 750;
+                border-bottom: 2px solid rgb(100, 154, 211);
+            }
+
+
+            .title1 {
+                font-weight: 700;
+                display: inline-block;
+                margin-left: 40px;
+            }
+
+            .title2 {
+                font-weight: 700;
+                display: inline-block;
+                margin-left: 225px;
+            }
+
+            .timeContainer:hover {
+                background-color: rgb(107, 172, 242);
+                border: 2px solid rgb(58, 123, 197);
+                color: rgb(20, 70, 126);
+                width: 604px;
+                font-size: 17px;
+            }
+
+            .timeContainer {
+                cursor: pointer;
+                font-size: 16px;
+                transition: font-size 0.3s ease, background-color 0.3s ease, color 0.3s ease, width 0.3s ease, border 0.3s ease;
+                z-index: 2;
+                margin: 0px;
+                padding: 0px;
+                padding-top: 4px;
+                padding-bottom: 0px;
+                background-color: rgb(87, 152, 222);
+                border-radius: 20px;
+                border: 2px solid rgb(41, 101, 169);
+                width: 600px;
+                align-items: center;
+                /* justify-items: center; */
+                color: rgb(10, 50, 97);
+            }
+
+            .times {
+                font-weight: 700;
+                display: inline-block;
+                margin-left: 15px;
+                padding-bottom: 4px;
+            }
+
+            .owner {
+                padding-bottom: 0px;
+                font-weight: 500;
+                padding-bottom: 7px;
+                margin-top: -26.5px;
+                margin-left: 170px;
+                display: flex;
+                justify-content: center; /* Align content horizontally at the center */
+                align-items: center; /* Align content vertically at the center */
+            }
+        </style>
+    </head>
+    <body>
+        <section id="headerSection">
+            <h1 class="header">HBA</h1>
+        </section>
+        <section id="scheduleSection">
+            <div class="title3"><%= data.fdate %></div>
+            <div class="titleContainer">
+                <div class="title1">Time Slot</div>
+                <div class="title2">Reserved By</div>
+            </div>
+        </section>
+        <script>
+            let startTime = '<%= data.stime %>';
+            let endTime = '<%= data.etime %>';
+            let incrementTime = '<%= data.itime %>';
+            let userId = '<%= data.ownerid %>'
+            let currentTime = startTime;
+            let Owners = '<%= owners %>';
+            let date = '<%= data.date %>';
+            let temp = []
+            let courtId = '<%= data.courtid %>';
+            let str = ""
+            for (var i = 0; i < Owners.length; i++) {
+                cur = Owners[i]
+                if (cur != ",") {
+                    str += cur
+                }
+                if (cur == ",") {
+                    temp.push(str)
+                    str = ""
+                }
+            }
+            temp.push(str)
+            Owners = temp
+
+            function addTimeContainer(ownerr) {
+                
+                // Create the new elements
+                const timeContainer = document.createElement("div");
+                timeContainer.className = "timeContainer";
+
+                const times = document.createElement("div");
+                times.className = "times";
+
+                var timeParts = currentTime.split(":"); // Split the time string into hours and minutes
+                var currentHour = parseInt(timeParts[0], 10); // Parse the hour as an integer
+                var currentMinute = parseInt(timeParts[1], 10); // Parse the minute as an integer
+
+                var nextTime = new Date();
+                nextTime.setHours(currentHour);
+                nextTime.setMinutes(currentMinute + incrementTime);
+
+                var nextHour = nextTime.getHours();
+                var nextMinute = nextTime.getMinutes();
+                var nextHour2 = nextHour;
+                if (nextHour2 == 0) {
+                    nextHour2 = 12;
+                }   
+                if (nextHour2 > 12) {
+                    nextHour2 -= 12;
+                }
+                var formattedNextHour = nextHour2.toString();
+                var formattedNextMinute = nextMinute.toString().padStart(2, '0');
+
+                var nextTimeString = `${formattedNextHour}:${formattedNextMinute}`;
+
+                console.log(currentHour, nextHour)
+                if (nextHour >= 12) {
+                    timeOfDay = "PM";
+                } else{
+                    timeOfDay = "AM";
+                }
+
+                if (currentHour >= 12) {
+                    timeOfDay2 = "PM";
+                } else{
+                    timeOfDay2 = "AM";
+                }
+
+                console.log(currentTime12hr)
+                if (typeof currentTime12hr === "undefined") {
+                    if (timeOfDay2 == "AM") {
+                        currentTime12hr = currentTime
+                    } else {
+                        if (currentHour > 12) {
+                            currentTime12hr = `${(currentHour-12).toString()}:${currentMinute.toString().padStart(2, '0')}`;
+                        } else {
+                            currentTime12hr = `${(currentHour).toString()}:${currentMinute.toString().padStart(2, '0')}`;
+                        }
+                    }
+                }
+
+                times.textContent = `${currentTime12hr} ${timeOfDay2} - ${nextTimeString} ${timeOfDay}`;
+
+                currentTime = nextTimeString;
+
+                const owner = document.createElement("div");
+                owner.className = "owner";
+                owner.textContent = ownerr;
+
+                // Append the elements to the DOM
+                timeContainer.appendChild(times);
+                timeContainer.appendChild(owner);
+
+                const scheduleSection = document.getElementById("scheduleSection");
+                scheduleSection.appendChild(timeContainer);
+                //////////////////
+                
+                function formatHourTo12HourFormat(hour) {
+                    if (hour < 1 || hour > 24) {
+                        throw new Error('Invalid hour, must be between 1 and 24');
+                    }
+
+                    const isPM = hour >= 12;
+                    const hour12 = (hour % 12) || 12;
+                    const formattedHour = hour12.toString().padStart(2, '0');
+                    const period = isPM ? 'PM' : 'AM';
+
+                    return `${formattedHour}:00 ${period}`;
+                }
+                // Create a link to the '/reserve' route
+                const link = document.createElement("a");
+                const dataToPass = {
+                    date: date, // Replace this with the actual date
+                    time: formatHourTo12HourFormat(currentHour), // Replace this with the actual time
+                    userId: userId, // Replace this with the actual user ID
+                    court: courtId,
+                    fdate: '<%= data.fdate %>',
+                    rtime: currentHour
+                };
+                link.href = `/reserve?data=${encodeURIComponent(JSON.stringify(dataToPass))}`;
+                // Set the href to the route you want to navigate to
+                // Add an event listener to the container to handle the click event
+                timeContainer.addEventListener("click", () => {
+                    // Redirect the user to the '/reserve' route when the container is clicked
+                    link.click();
+                });
+            }
+
+            let currentTime12hr = undefined;
+            function setup() {
+                var currentHour = parseInt(startTime.split(":")[0], 10);
+                var currentMinute = parseInt(startTime.split(":")[1], 10);
+
+                var endHour = parseInt(endTime.split(":")[0], 10);
+                var endMinute = parseInt(endTime.split(":")[1], 10);
+
+                let i = 0;
+    
+                while (currentHour < endHour || (currentHour === endHour && currentMinute < endMinute)) {
+                    addTimeContainer(Owners[i]);
+                    i++;
+                    currentMinute += incrementTime;
+                    if (currentMinute >= 60) {
+                        currentMinute -= 60;
+                        currentHour++;
+                    }
+                    let currentHour2 = currentHour >= 12 ? (currentHour % 12 || 12) : currentHour;
+                    let nextHour2 = (currentHour + Math.floor((currentMinute + incrementTime) / 60)) >= 12 ? ((currentHour + Math.floor((currentMinute + incrementTime) / 60)) % 12 || 12) : (currentHour + Math.floor((currentMinute + incrementTime) / 60));
+
+                    currentTime = `${currentHour.toString()}:${currentMinute.toString().padStart(2, '0')}`;
+                    currentTime12hr = `${currentHour2.toString()}:${currentMinute.toString().padStart(2, '0')}`;
+                    nextTime = `${nextHour2.toString()}:${(currentMinute + incrementTime) % 60 .toString().padStart(2, '0')}`;
+                }
+            }
+
+            setup();
+        </script>
+        
+    </body>
+</html>

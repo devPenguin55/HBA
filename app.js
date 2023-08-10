@@ -8,9 +8,12 @@ const { connect } = require('http2');
 const credentials = require('./credentials.js');
 require('isomorphic-fetch');
 require('dotenv').config();
+require('./calendarGeneration');
 
 const adminUsername = "admin";
 const adminPassword = "1";
+const hbaopenhour = parseInt(process.env.HBASTARTHOUR, 10);
+const hbaendhour = parseInt(process.env.HBAENDHOUR, 10);
 
 // Create connection
 console.log(process.env.MYSQLHOST,  process.env.MYSQLUSER, process.env.MYSQLPASSWORD,  process.env.MYSQLDATABASE, process.env.MYSQLPORT)
@@ -43,7 +46,6 @@ const transporter = nodemailer.createTransport({
       pass: credentials.pass
     }
 });
-
 
 
 
@@ -87,6 +89,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '')));
 
+// Set EJS as the view engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+
+
 console.log("express app created")
 // route handling
 // all of the auth and pages
@@ -101,6 +109,54 @@ function generateOTP() {
       console.log('OTP expired:', otp);
     }, 10 * 60 * 1000); // 10 minutes
     return otp;
+}
+
+function generateCalendarForCurrentMonth() {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // January is month 0 in JavaScript
+  
+    // Get the number of days in the current month
+    const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+    // Delete old data for the current month
+    const deleteQuery = 'DELETE FROM calendar WHERE YEAR(date) = ? AND MONTH(date) = ?';
+    connection.query(deleteQuery, [currentYear, currentMonth], (err, result) => {
+      if (err) {
+        console.error('Error deleting old data:', err);
+      } else {
+        console.log('Old data deleted successfully!');
+        // Generate new data for the current month
+        const insertQuery = 'INSERT INTO calendar (date, hour, owner_id) VALUES (?, ?, ?)';
+        const hoursInDay = 24;
+      
+        // Get the user IDs from the 'users' table
+        const getUsersQuery = 'SELECT id FROM users';
+        connection.query(getUsersQuery, (err, users) => {
+          if (err) {
+            console.error('Error fetching user IDs:', err);
+          } else {
+            const blankOwnerId = null; // Use null for a blank owner_id
+            let userIndex = 0;
+
+            for (let day = 1; day <= daysInMonth; day++) {
+              for (let hour = 0; hour < hoursInDay; hour++) {
+                // Create a new entry for each hour in the day with a user ID
+                const currentDate = new Date(currentYear, currentMonth - 1, day, hour, 0, 0);
+                const currentUserId = users[userIndex % users.length].id;
+                connection.query(insertQuery, [currentDate, '00:00', currentUserId], (err, result) => {
+                  if (err) {
+                    console.error('Error generating data:', err);
+                  }
+                });
+                userIndex++;
+              }
+            }
+            console.log('New data generated successfully!');
+          }
+        });
+      }
+    });
 }
 
 // login things
@@ -178,7 +234,7 @@ app.post('/forgotPasswordAuth', function(request, response) {
     console.log("forgot password page entered")
     if (firstname && lastname && email) {
         // Execute SQL query that'll select the account from the database based on the specified username and password
-        db.query('SELECT * FROM UserEmails WHERE email = ?', email, function(error, results, fields) {
+        db.query('SELECT * FROM UserEmails WHERE email = ? AND firstname = ? AND lastname = ?', [email, firstname, lastname], function(error, results, fields) {
             // If there is an issue with the query, output the error
             if (error) throw error;
             // If the account exists
@@ -321,7 +377,7 @@ app.post('/fAuthOtp', function(request, response) {
                   console.log(otp, results[0].otp);
                   if (results[0].otp == otp) {
                       request.session.registerPassword = true
-                      response.redirect('/registerPassword');
+                      response.redirect('/fPassword');
                   } else {
                       request.session.registerotp1 = false
                       request.session.registerotp = false
@@ -380,7 +436,7 @@ app.post('/fPasswordAuth', function(request, response) {
         if (err) {
         // If there's an error executing the query, send an error response
         console.log('Error executing query:', err);
-        message = "User already exists";
+        message = "Error updating user";
         let finalMessage = `
         <html>
             <body style="background-color: rgb(162, 205, 248);">
@@ -595,7 +651,7 @@ app.post('/registerAuthOtp', function(request, response) {
         db.query('SELECT * FROM Otp WHERE owner_id = ?', [request.session.memberId], (err, results) => {
             if (err) {
               console.log(err);
-              response.status(500).send('Failed to retrieve OTP');
+              response.status(500).send('Database error');
             } else {
                 let time = results[0].end_time;
                 const utcDate = new Date(time);
@@ -713,7 +769,9 @@ app.post('/registerPasswordAuth', function(request, response) {
         sql = 'INSERT INTO UserEmails SET ?';
         const emailData = {
             email: request.session.email,
-            owner_id: insertedId
+            owner_id: insertedId,
+            firstname: firstname,
+            lastname: lastname
         };
         db.query(sql, emailData, (error, results) => {
           if (error) {
@@ -887,7 +945,7 @@ app.post('/deleteMember', function(req, res) {
                                 } else {
                                     db.query('SELECT * FROM Members WHERE firstname = ? AND lastname = ? AND email = ?', [firstname, lastname, email], (error, results) => {
                                         if (results.length > 0) {
-                                            db.query('DELETE FROM UserEmails WHERE email = ?', [email], (err, results) => {
+                                            db.query('DELETE FROM UserEmails WHERE firstname = ? AND lastname = ? AND email = ?', [email, firstname, lastname], (err, results) => {
                                                 if (err) {
                                                   console.error('Error:', err);
                                                   message = "Error occured while deleting member information from the Members table.";
@@ -1059,9 +1117,208 @@ app.post('/userList', function(req, res) {
 
 
 app.get('/home', function(request, response) {
-    console.log("Home Page");
+    if (request.session.loggedin) {
+        response.sendFile(path.join(__dirname + '/homeOptions.html'));
+    } else{
+        response.redirect('/login');
+    }
 });
+// app.post('/reserveCourt', function(request, response) {
+//     if (request.session.loggedin) {
+//         response.sendFile(path.join(__dirname + '/homeOptions.html'));
+//     } else {
+//         response.redirect('/login');
+//     }
+// });
 
+// modify the db query [env var] to change search open time
+app.get('/schedule', async function (request, response) {
+    // make not !
+    if (request.session.loggedin) {
+      // Retrieve the data from the query parameter
+      const data = request.query.data;
+      // Parse the JSON data back to its original format
+      const decodedData = JSON.parse(decodeURIComponent(data));
+      console.log(decodedData)
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+      const court5 = 1;
+      try {
+        const results = await new Promise((resolve, reject) => {
+          const query = 'SELECT * FROM CALENDAR WHERE hour >= ? AND hour <= ? and date = ? and court_id = ?';
+          db.query(query, [hbaopenhour, hbaendhour, formattedDate, court5], (error, results) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        });
+        
+        if (results.length > 0) {
+          owners = [];
+          let ownerIds = []
+          for (const row of results) {
+            const ownerId = row.owner_id;
+            if (ownerId != null) {
+              try {
+                const result = await new Promise((resolve, reject) => {
+                  db.query("SELECT * FROM USERS WHERE id = ?", [ownerId], (error, result) => {
+                    if (error) {
+                      reject(error);
+                    } else {
+                      resolve(result);
+                    }
+                  });
+                });
+
+                if (result.length > 0) {
+                  ownerIds.push(ownerId)
+                  owners.push(result[0].firstname + " " + result[0].lastname);
+                } else {
+                  owners.push("-"); // Replace with null if user doesn't exist
+                }
+              } catch (error) {
+                console.log(error);
+                response.status(500).send("<html><body style='background-color: rgb(162, 205, 248);'><h1 style='text-align: center; color: rgb(50, 112, 192); font-family: system-ui; font-size: 40px;'>Database error</h1></body></html>");
+                return;
+              }
+            } else {
+              owners.push("-"); // Replace with null if owner_id is null
+            }
+          }
+          console.log(owners)
+          console.log(ownerIds)
+          function formatDate(dateString) {
+            const months = [
+              "January", "February", "March", "April", "May", "June", 
+              "July", "August", "September", "October", "November", "December"
+            ];
+
+            const date = new Date(dateString);
+            date.setDate(date.getDate() + 1); // Add 1 to the date to correct the issue with month index
+
+            // Adjust the date to the local time zone offset
+            const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+
+            const day = localDate.getDate();
+            const month = months[localDate.getMonth()];
+            const year = localDate.getFullYear();
+
+            let daySuffix = "th";
+            if (day === 1 || day === 21 || day === 31) {
+              daySuffix = "st";
+            } else if (day === 2 || day === 22) {
+              daySuffix = "nd";
+            } else if (day === 3 || day === 23) {
+              daySuffix = "rd";
+            }
+
+            return `${month} ${day}${daySuffix}, ${year}`;
+          }
+
+          const dateInString = formattedDate;
+          const formattedDate1 = formatDate(dateInString);
+          console.log(formattedDate1);
+          console.log(request.session.userId)
+          const data = {
+            stime: `${hbaopenhour}:00`,
+            etime: `${hbaendhour}:00`,
+            itime: '60',
+            owners: JSON.stringify(owners),
+            ownerid: request.session.userId,
+            fdate: formattedDate1,
+            date: formattedDate,
+            courtid: 1,
+          };
+          response.render('schedule', { data: data });
+        } else {
+          response.status(500).send("<html><body style='background-color: rgb(162, 205, 248);'><h1 style='text-align: center; color: rgb(50, 112, 192); font-family: system-ui; font-size: 40px;'>No schedule available for month, wait for the next month</h1></body></html>");
+          return;
+        }
+      } catch (error) {
+        console.log(error);
+        response.status(500).send("<html><body style='background-color: rgb(162, 205, 248);'><h1 style='text-align: center; color: rgb(50, 112, 192); font-family: system-ui; font-size: 40px;'>Database error</h1></body></html>");
+        return;
+      }
+    } else {
+      response.redirect('/login');
+    }
+});
+app.get('/reserve', (req, res) => {
+    // make not !
+    if (req.session.loggedin) {
+        // Retrieve the data from the query parameter
+        const data = req.query.data;
+    
+        // Parse the JSON data back to its original format
+        const decodedData = JSON.parse(decodeURIComponent(data));
+        function formatHourToTime3(hour) {
+            const formattedHour = hour.toString().padStart(2, '0');
+            return `00:00:${formattedHour}`;
+        }
+        db.query('SELECT * FROM CALENDAR WHERE date = ? and hour = ? and court_id = ? and owner_id IS NULL',  [decodedData.date, formatHourToTime3(decodedData.rtime), decodedData.court], (err, res5) => {
+            if (res5.length > 0) {
+                // Your logic to render the 'reserve' page or do other processing
+                res.render('reserve', { data: decodedData });
+            } else {
+                res.redirect('/schedule');
+            }
+        });
+        
+    } else {
+        res.redirect('/login');
+    }
+});
+app.post('/reserveAuth', (req, res) => {
+    if (req.session.loggedin) {
+      // Retrieve the data from the query parameter
+      const ownerId = req.body.userId;
+      const date = req.body.date;
+      const time = req.body.time;
+      const court = req.body.court;
+      console.log(ownerId, date, formatHourToTime3(time), court);
+
+      const query = `
+        UPDATE CALENDAR 
+        SET owner_id = ?
+        WHERE date = ? AND hour = ? AND court_id = ?
+      `;
+
+      function formatHourToTime3(hour) {
+        const formattedHour = hour.toString().padStart(2, '0');
+        return `00:00:${formattedHour}`;
+      }
+
+      db.query('SELECT * FROM CALENDAR WHERE date = ? and hour = ? and court_id = ? and owner_id IS NULL',  [date, formatHourToTime3(time), court], (err, res5) => {
+        if (res5.length > 0) {
+            db.query(query, [ownerId, date, formatHourToTime3(time), court], (err, res1) => {
+            if (err) {
+            // Handle the error
+            console.error(err);
+            res.status(500).send("<html><body style='background-color: rgb(162, 205, 248);'><h1 style='text-align: center; color: rgb(50, 112, 192); font-family: system-ui; font-size: 40px;'>Database error</h1></body></html>");
+            } else {
+            if (res1.affectedRows > 0) {
+                // The update was successful
+                res.redirect('/schedule');
+            } else {
+                // No rows were updated
+                res.status(500).send("<html><body style='background-color: rgb(162, 205, 248);'><h1 style='text-align: center; color: rgb(50, 112, 192); font-family: system-ui; font-size: 40px;'>No matching records found</h1></body></html>");
+            }
+            }
+            });
+        } else {
+            res.status(500).send("<html><body style='background-color: rgb(162, 205, 248);'><h1 style='text-align: center; color: rgb(50, 112, 192); font-family: system-ui; font-size: 40px;'>Slot already filled</h1></body></html>");
+            
+        }
+      });
+    } else {
+      res.redirect('/login');
+    }
+  });
 
 // // handle 404 scenarios
 // app.get('/404', function(request, response) {
