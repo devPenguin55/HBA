@@ -96,9 +96,6 @@
   <div class="container">
     <h1 id="welcome"">Welcome Back!</h1>
     <button id="calendarButton" class="buttons">Calendar</button>
-    <form autocomplete="off" action="/reserveCourt" method="get">
-      <button type="submit" class="buttons">Reserve Court</button>
-    </form>
     <button id='sched' type="submit" class="buttons" onclick="scheduleMake()">View Schedule</button>
   </div>
   
@@ -114,7 +111,13 @@
     const calendarButton = document.getElementById('calendarButton');
     const calendarPopup = document.getElementById('calendarPopup');
     const calendarWrapper = document.querySelector('.calendar-wrapper');
-    let y = new Date("today")
+    const today = new Date();
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    const localDate = today.toLocaleDateString(undefined, options);
+
+    // Convert the formatted local date string back to a Date object
+    const dateObj = new Date(localDate);
+    let y = dateObj;
     const calendarInstance = flatpickr(calendarWrapper, {
       inline: true, // Show the calendar inline within the element
       minDate: "today", // Prevent selecting dates in the past

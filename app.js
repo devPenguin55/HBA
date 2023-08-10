@@ -1139,8 +1139,9 @@ app.get('/schedule', async function (request, response) {
       const data = request.query.data;
       // Parse the JSON data back to its original format
       const decodedData = JSON.parse(decodeURIComponent(data));
-      console.log(decodedData)
-      const now = new Date();
+      const dataDate = decodedData['date1']
+      console.log(dataDate)
+      const now = new Date(dataDate);
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
