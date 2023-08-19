@@ -194,6 +194,7 @@
             let date = '<%= data.date %>';
             let temp = []
             let courtId = '<%= data.courtid %>';
+            
             let str = ""
             for (var i = 0; i < Owners.length; i++) {
                 cur = Owners[i]
@@ -207,7 +208,7 @@
             }
             temp.push(str)
             Owners = temp
-
+            console.log(courtId, Owners)
             function addTimeContainer(ownerr) {
                 
                 // Create the new elements

@@ -87,6 +87,39 @@
     .flatpickr-current-month:hover .flatpickr-monthDropdown-months:hover {
       background-color: rgb(45, 89, 165);
     }
+    /* back to regular */
+    .grid-container {
+        width: 300px;
+        margin: 0 auto;;
+        text-align: center;
+        margin-top: 30px;
+        font-family: system-ui;
+        font-weight:500;
+        background: rgb(23, 90, 167);
+        border-radius: 15px;
+        padding-top: 5px;
+        padding-bottom: 20px;
+        border: 2px solid rgb(76, 143, 210);
+    }
+
+
+    .small-element {
+      background: rgb(23, 90, 167);
+      border: 2px solid rgb(76, 143, 210);
+      border-radius: 5px;
+      color: white;
+      font-size: 18px;
+      width: 80px; /* Adjust the width of each grid cell to match grid-template-columns */
+      height: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0px;
+      margin: 0px;
+    }
+
+
+
   </style>
 </head>
 <body>
@@ -96,7 +129,9 @@
   <div class="container">
     <h1 id="welcome"">Welcome Back!</h1>
     <button id="calendarButton" class="buttons">Calendar</button>
+    <button id="courtb" class="buttons">Court</button>
     <button id='sched' type="submit" class="buttons" onclick="scheduleMake()">View Schedule</button>
+    <div style="display: none;position:absolute;top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgb(186, 218, 255);z-index: 55; top: 123px;display: grid; grid-template-columns: repeat(auto-fill, 80px); gap: 10px;align-items: center; justify-items: center; " id="popupd" class="container"></div>
   </div>
   
   <!-- Calendar popup container -->
@@ -111,13 +146,14 @@
     const calendarButton = document.getElementById('calendarButton');
     const calendarPopup = document.getElementById('calendarPopup');
     const calendarWrapper = document.querySelector('.calendar-wrapper');
+    const courtb = document.getElementById('courtb')
     const today = new Date();
     const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
     const localDate = today.toLocaleDateString(undefined, options);
+    
+
 
     // Convert the formatted local date string back to a Date object
-    const dateObj = new Date(localDate);
-    let y = dateObj;
     const calendarInstance = flatpickr(calendarWrapper, {
       inline: true, // Show the calendar inline within the element
       minDate: "today", // Prevent selecting dates in the past
@@ -139,7 +175,8 @@
     function scheduleMake() {
         // Redirect the user to the '/schedule' route when the container is clicked
         let dataToPass = {
-          date1:y
+          date1:new Date(localDate),
+          court1:3 //THIS WHERE TO ADD COURT NUMBER
         };
         window.location.href = `/schedule?data=${encodeURIComponent(JSON.stringify(dataToPass))}`;
         
@@ -154,13 +191,35 @@
     function closeCalendarPopup() {
       calendarPopup.style.display = 'none';
     }
-
+    
     // Open the calendar popup when the "Calendar" button is clicked
     calendarButton.addEventListener('click', function(event) {
       openCalendarPopup();
       event.stopPropagation();
     });
-
+    document.getElementById('courtb').addEventListener('click', function(event) {
+      
+      let x = document.getElementById('popupd');
+      if (event.target == document.getElementById('courtb')) {
+        x.style.display = 'block'
+        while (x.firstChild) {
+          x.removeChild(x.firstChild);
+        }
+        for (let i = 1; i <= 6; i++) {
+          const smallElement = document.createElement('div');
+          smallElement.classList.add('small-element');
+          smallElement.classList.add('grid-container');
+          smallElement.textContent = i;
+          x.appendChild(smallElement);
+        }
+      } else {
+        while (x.firstChild) {
+          x.removeChild(x.firstChild);
+        }
+        x.style.display = 'none'
+      }
+      event.stopPropagation();
+    });
     // Close the calendar popup when clicking outside of it
     window.addEventListener("click", function(event) {
       if (

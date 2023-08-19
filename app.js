@@ -52,30 +52,25 @@ const transporter = nodemailer.createTransport({
 
 
 
-// const mailOptions = {
-//     from: 'no.reply.hba@gmail.com',
-//     to: 'aaravdeshmane@gmail.com',
-//     subject: 'Test Email',
-//     text: 'This is a test email. The server has started!'
-//   };
+const mailOptions = {
+    from: credentials.user,
+    to: 'aaravdeshmane@gmail.com',
+    subject: 'Server Running',
+    text: 'HBA server up and running!'
+  };
 
-//   transporter.sendMail(mailOptions, function(error, info) {
-//     if (error) {
-//       console.log(error);
-//     } else {
-//       console.log('Email sent: ' + info.response);
-//     }
-//   });
+  transporter.sendMail(mailOptions, function(error, info) {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Email sent: ' + info.response);
+    }
+  });
 
 
 console.log(credentials.user, credentials.pass)
 console.log("email connection created")
-
-
 console.log("email verification created")
-
-
-
 
 app = express();
 
@@ -99,6 +94,7 @@ console.log("express app created")
 // route handling
 // all of the auth and pages
 // and user admin relationships
+// scheduling
 
 
 function generateOTP() {
@@ -321,7 +317,7 @@ app.get('/forgotOtp', function(request, response) {
                 console.log('Retrieved otpsent:', otpsent);
 
                 const mailOptions = {
-                    from: 'no.reply.hba@gmail.com',
+                    from: credentials.user,
                     to: email,
                     subject: 'OTP for your HBA account',
                     text: `Your HBA OTP is: ${otpsent}`
@@ -451,6 +447,7 @@ app.post('/fPasswordAuth', function(request, response) {
     });
 });
 
+
 // registering things
 app.post('/authRegister', function(request, response) {
     // Capture the input fields
@@ -576,7 +573,7 @@ app.get('/otp', function(request, response) {
                 console.log('Retrieved otpsent:', otpsent);
 
                 const mailOptions = {
-                    from: 'no.reply.hba@gmail.com',
+                    from: credentials.user,
                     to: email,
                     subject: 'OTP for your HBA account',
                     text: `Your HBA OTP is: ${otpsent}`
@@ -793,7 +790,6 @@ app.post('/registerPasswordAuth', function(request, response) {
         }
     });
 });
-
 
 
 // admin things
@@ -1123,30 +1119,37 @@ app.get('/home', function(request, response) {
         response.redirect('/login');
     }
 });
-// app.post('/reserveCourt', function(request, response) {
-//     if (request.session.loggedin) {
-//         response.sendFile(path.join(__dirname + '/homeOptions.html'));
-//     } else {
-//         response.redirect('/login');
-//     }
-// });
-
-// modify the db query [env var] to change search open time
 app.get('/schedule', async function (request, response) {
     // make not !
     if (request.session.loggedin) {
       // Retrieve the data from the query parameter
-      const data = request.query.data;
+      
+      let data = request.query.data;
+      console.log(data, decodeURIComponent(data))
       // Parse the JSON data back to its original format
+      
+      if (data == undefined) {
+        data = request.session.scheduleData
+      } else {
+        request.session.scheduleData = data
+        request.session.sdData = request.protocol + '://' + request.get('host') + request.originalUrl;
+      }
       const decodedData = JSON.parse(decodeURIComponent(data));
       const dataDate = decodedData['date1']
+      console.log("sdfsf")
+      console.log(
+        parseInt(decodedData['court1']),  // Parsed integer value
+        decodedData['court1'],             // Original value
+        typeof decodedData['court1']       // Data type of the value
+      );
+      const court1 = parseInt(decodedData['court1'])
       console.log(dataDate)
       const now = new Date(dataDate);
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
       const formattedDate = `${year}-${month}-${day}`;
-      const court5 = 1;
+      const court5 = court1;
       try {
         const results = await new Promise((resolve, reject) => {
           const query = 'SELECT * FROM CALENDAR WHERE hour >= ? AND hour <= ? and date = ? and court_id = ?';
@@ -1233,8 +1236,11 @@ app.get('/schedule', async function (request, response) {
             ownerid: request.session.userId,
             fdate: formattedDate1,
             date: formattedDate,
-            courtid: 1,
+            courtid: court1,
           };
+          
+          console.log("--------")
+          console.log(owners, court1)
           response.render('schedule', { data: data });
         } else {
           response.status(500).send("<html><body style='background-color: rgb(162, 205, 248);'><h1 style='text-align: center; color: rgb(50, 112, 192); font-family: system-ui; font-size: 40px;'>No schedule available for month, wait for the next month</h1></body></html>");
@@ -1250,32 +1256,46 @@ app.get('/schedule', async function (request, response) {
     }
 });
 app.get('/reserve', (req, res) => {
-    // make not !
     if (req.session.loggedin) {
-        // Retrieve the data from the query parameter
         const data = req.query.data;
-    
-        // Parse the JSON data back to its original format
         const decodedData = JSON.parse(decodeURIComponent(data));
+        
         function formatHourToTime3(hour) {
             const formattedHour = hour.toString().padStart(2, '0');
             return `00:00:${formattedHour}`;
         }
-        db.query('SELECT * FROM CALENDAR WHERE date = ? and hour = ? and court_id = ? and owner_id IS NULL',  [decodedData.date, formatHourToTime3(decodedData.rtime), decodedData.court], (err, res5) => {
-            if (res5.length > 0) {
-                // Your logic to render the 'reserve' page or do other processing
-                res.render('reserve', { data: decodedData });
-            } else {
-                res.redirect('/schedule');
-            }
-        });
         
+        db.query(
+            'SELECT * FROM CALENDAR WHERE date = ? AND hour = ? AND court_id = ? AND owner_id IS NULL',
+            [decodedData.date, formatHourToTime3(decodedData.rtime), decodedData.court],
+            (err, res5) => {
+                if (res5.length > 0) {
+                    req.session.resAuth = true;
+                    res.render('reserve', { data: decodedData });
+                } else {
+                    db.query(
+                        'SELECT * FROM CALENDAR WHERE date = ? AND hour = ? AND court_id = ? AND owner_id = ?',
+                        [decodedData.date, formatHourToTime3(decodedData.rtime), decodedData.court, req.session.userId],
+                        (err, res6) => {
+                            if (res6.length > 0) {
+                                req.session.scd = true
+                                req.session.sssdata = decodedData
+                                res.redirect('/scheduleConfirmDeletion');
+                            } else {
+                                res.redirect(req.session.sdData);
+                            }
+                        }
+                    );
+                }
+            }
+        );
     } else {
         res.redirect('/login');
     }
 });
 app.post('/reserveAuth', (req, res) => {
-    if (req.session.loggedin) {
+    if (req.session.loggedin && req.session.resAuth) {
+      req.session.resAuth = false
       // Retrieve the data from the query parameter
       const ownerId = req.body.userId;
       const date = req.body.date;
@@ -1304,7 +1324,10 @@ app.post('/reserveAuth', (req, res) => {
             } else {
             if (res1.affectedRows > 0) {
                 // The update was successful
-                res.redirect('/schedule');
+                const encodedData = encodeURIComponent(decodeURIComponent(req.session.scheduleData));
+                const redirectUrl = `http://localhost:3000/schedule?data=${encodedData}`;
+                console.log(encodedData, decodeURIComponent(req.session.scheduleData))
+                res.redirect(req.session.sdData);
             } else {
                 // No rows were updated
                 res.status(500).send("<html><body style='background-color: rgb(162, 205, 248);'><h1 style='text-align: center; color: rgb(50, 112, 192); font-family: system-ui; font-size: 40px;'>No matching records found</h1></body></html>");
@@ -1319,15 +1342,48 @@ app.post('/reserveAuth', (req, res) => {
     } else {
       res.redirect('/login');
     }
-  });
-
-// // handle 404 scenarios
-// app.get('/404', function(request, response) {
-//     response.sendFile(path.join(__dirname + '/404.html'));
-// });
-// app.use(function(req, res, next) {
-//     res.redirect('404');
-// });
+});
+app.get('/scheduleConfirmDeletion', (req, res) => {
+    if (req.session.loggedin && req.session.scd) {
+        req.session.scd = false
+        req.session.dsoi = true
+        const data = req.session.sssdata    
+        res.render('schedConfirmDel', { data: data });
+    } else {
+        res.redirect('/login')
+    }
+});
+app.post('/deleteScheduleOwnerId', (req, res) => {
+    if (req.session.loggedin && req.session.dsoi) {
+        req.session.dsoi = false
+        date = req.body.date
+        time = "00:00:"+req.body.time.toString().padStart(2, '0');
+        ownerId = req.body.userId
+        court = req.body.court
+        console.log(date, time, ownerId, court)
+        db.query('SELECT * FROM CALENDAR WHERE date = ? and hour = ? and owner_id = ? and court_id = ?', [date, time, ownerId, court], (err, res5) => {
+            if (res5 && res5.length > 0) {
+                db.query('UPDATE CALENDAR SET owner_id = ? WHERE date = ? and hour = ? and owner_id = ? and court_id = ?' , [null, date, time, ownerId, court],(err, res6) => {
+                    console.log(res6.affectedRows, res6)
+                    if (res6 && res6.affectedRows > 0) {
+                        res.redirect(req.session.sdData);
+                    } else {
+                        res.status(500).send("<html><body style='background-color: rgb(162, 205, 248);'><h1 style='text-align: center; color: rgb(50, 112, 192); font-family: system-ui; font-size: 40px;'>Database Error</h1></body></html>");
+                    }
+                });
+            } else {
+                res.status(500).send("<html><body style='background-color: rgb(162, 205, 248);'><h1 style='text-align: center; color: rgb(50, 112, 192); font-family: system-ui; font-size: 40px;'>No matching records found</h1></body></html>");
+            }
+        });
+    }
+});
+// handle 404 scenarios
+app.get('/404', function(request, response) {
+    response.sendFile(path.join(__dirname + '/404.html'));
+});
+app.use(function(req, res, next) {
+    res.redirect('404');
+});
 
 
 
