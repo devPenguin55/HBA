@@ -30,38 +30,44 @@ function generateNewDataForCurrentMonth() {
     const currentMonthDate = new Date(currentYear, currentMonth - 1, 1); // 1st day of the current month
     const nextMonthDate = new Date(currentYear, currentMonth, 1); // 1st day of the next month
   
-    const deleteQuery = 'DROP TABLE IF EXISTS CALENDAR';
+    const deleteQuery = 'TRUNCATE TABLE CALENDAR';
     connection.query(deleteQuery, (err, result) => {
       if (err) {
         console.error('Error deleting old data:', err);
-      }
-    });
-    const createQuery = 'CREATE TABLE calendar (calendar_id INT PRIMARY KEY AUTO_INCREMENT, date DATE NOT NULL, hour TIME NOT NULL, owner_id INT, court_id INT, FOREIGN KEY (court_id) REFERENCES courts(id), FOREIGN KEY (owner_id) REFERENCES users(id));';
-    connection.query(createQuery, (err, result) => {
-      if (err) {
-        console.error('Error deleting old data:', err);
       } else {
-        // Generate new data for the current month until the end of the month
-        const insertQuery = 'INSERT INTO calendar (date, hour, owner_id, court_id) VALUES (?, ?, ?, ?)';
-        for (let courtNumber = 1; courtNumber <= 4; courtNumber++) {
-          for (let day = now.getDate(); day <= lastDayOfCurrentMonth; day++) {
-            for (let hour = hbaopenhour; hour <= hbaendhour; hour++) {
-              // Create a new entry for each hour in the day with a blank owner_id
-              const currentDate = new Date(currentYear, currentMonth - 1, day, hour, 0, 0);
-              connection.query(insertQuery, [currentDate, hour, null, courtNumber], (err, result) => {
-                if (err) {
-                  console.error('Error generating data:', err);
-                } else {
-                    //console.log('Data generated successfully for', currentDate);
+        const resetAutoIncrementQuery = 'ALTER TABLE calendar AUTO_INCREMENT = 1';
+        connection.query(resetAutoIncrementQuery, (err, result) => {
+          if (err) {
+            console.error('Error resetting auto-increment:', err);
+          } else {
+            console.log('Auto-increment reset successfully.');
+            
+            // Generate new data for the current month until the end of the month
+            const insertQuery = 'INSERT INTO calendar (date, hour, owner_id, court_id) VALUES (?, ?, ?, ?)';
+            for (let courtNumber = 1; courtNumber <= 4; courtNumber++) {
+              for (let day = now.getDate(); day <= lastDayOfCurrentMonth; day++) {
+                for (let hour = hbaopenhour; hour <= hbaendhour; hour++) {
+                  // Create a new entry for each hour in the day with a blank owner_id
+                  const currentDate = new Date(currentYear, currentMonth - 1, day, hour, 0, 0);
+                  connection.query(insertQuery, [currentDate, hour, null, courtNumber], (err, result) => {
+                    if (err) {
+                      console.error('Error generating data:', err);
+                    } else {
+                        //console.log('Data generated successfully for', currentDate);
+                    }
+                  });
                 }
-              });
+              } 
             }
-          } 
-        }
-        console.log('New data generated successfully for the current month.');
+            console.log('New data generated successfully for the current month.');
+            }
+            });
       }
     });
 }
+    
+    
+
   
 
 console.log("calendar generation file started")
