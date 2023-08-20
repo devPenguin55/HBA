@@ -170,7 +170,7 @@ app.post('/authLogin', function(request, response) {
     // Ensure the input fields exists and are not empty
     if (firstname && lastname && password) {
         // Execute SQL query that'll select the account from the database based on the specified username and password
-        db.query('SELECT * FROM Users WHERE firstname = ? AND lastname = ? AND passcode = ?', [firstname, lastname, password], function(error, results, fields){
+        db.query('SELECT * FROM users WHERE firstname = ? AND lastname = ? AND passcode = ?', [firstname, lastname, password], function(error, results, fields){
             // If there is an issue with the query, output the error
             if (error) throw error;
             // If the account exists
@@ -230,7 +230,7 @@ app.post('/forgotPasswordAuth', function(request, response) {
     console.log("forgot password page entered")
     if (firstname && lastname && email) {
         // Execute SQL query that'll select the account from the database based on the specified username and password
-        db.query('SELECT * FROM UserEmails WHERE email = ? AND firstname = ? AND lastname = ?', [email, firstname, lastname], function(error, results, fields) {
+        db.query('SELECT * FROM useremails WHERE email = ? AND firstname = ? AND lastname = ?', [email, firstname, lastname], function(error, results, fields) {
             // If there is an issue with the query, output the error
             if (error) throw error;
             // If the account exists
@@ -246,12 +246,12 @@ app.post('/forgotPasswordAuth', function(request, response) {
                 // Add 10 minutes to the current time
                 const futureTime = new Date(now.getTime() + 10 * 60000);
                 const query = `
-                INSERT INTO Otp (owner_id, otp, end_time)
+                INSERT INTO otp (owner_id, otp, end_time)
                 SELECT ?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE)
                 FROM DUAL
                 WHERE NOT EXISTS (
                     SELECT *
-                    FROM Otp
+                    FROM otp
                     WHERE owner_id = ?
                     AND end_time > CURRENT_TIMESTAMP()
                 )
@@ -307,7 +307,7 @@ app.get('/forgotOtp', function(request, response) {
         request.session.fotp = false
         request.session.fotp1 = true
         const email = request.session.femail;
-        db.query('SELECT * FROM Otp WHERE owner_id = ?', [request.session.userId], (err, results) => {
+        db.query('SELECT * FROM otp WHERE owner_id = ?', [request.session.userId], (err, results) => {
             if (err) {
               console.log(err);
               response.status(500).send('Failed to retrieve OTP');
@@ -346,7 +346,7 @@ app.post('/fAuthOtp', function(request, response) {
         request.session.fotp1 = false
         otp = request.body.p1+request.body.p2+request.body.p3+request.body.p4+request.body.p5+request.body.p6
         var checkOtp;
-        db.query('SELECT * FROM Otp WHERE owner_id = ?', [request.session.userId], (err, results) => {
+        db.query('SELECT * FROM otp WHERE owner_id = ?', [request.session.userId], (err, results) => {
             if (err) {
               console.log(err);
               response.status(500).send('Failed to retrieve OTP');
@@ -462,7 +462,7 @@ app.post('/authRegister', function(request, response) {
     // Ensure the input fields exists and are not empty
     if (firstname && lastname && email) {
         // Execute SQL query that'll select the account from the database based on the specified username and password
-        db.query('SELECT * FROM Members WHERE firstname = ? AND lastname = ? AND email = ?', [firstname, lastname, email], function(error, results, fields) {
+        db.query('SELECT * FROM members WHERE firstname = ? AND lastname = ? AND email = ?', [firstname, lastname, email], function(error, results, fields) {
             // If there is an issue with the query, output the error
             if (error) throw error;
             // If the account exists
@@ -480,12 +480,12 @@ app.post('/authRegister', function(request, response) {
                     // Add 10 minutes to the current time
                     const futureTime = new Date(now.getTime() + 10 * 60000);
                     const query = `
-                    INSERT INTO Otp (owner_id, otp, end_time)
+                    INSERT INTO otp (owner_id, otp, end_time)
                     SELECT ?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE)
                     FROM DUAL
                     WHERE NOT EXISTS (
                         SELECT *
-                        FROM Otp
+                        FROM otp
                         WHERE owner_id = ?
                         AND end_time > CURRENT_TIMESTAMP()
                     )
@@ -563,7 +563,7 @@ app.get('/otp', function(request, response) {
         request.session.registerotp = false
         request.session.registerotp1 = true
         const email = request.session.email;
-        db.query('SELECT * FROM Otp WHERE owner_id = ?', [request.session.memberId], (err, results) => {
+        db.query('SELECT * FROM otp WHERE owner_id = ?', [request.session.memberId], (err, results) => {
             if (err) {
               console.log(err);
               response.status(500).send('Failed to retrieve OTP');
@@ -645,7 +645,7 @@ app.post('/registerAuthOtp', function(request, response) {
     if (request.session.registerotp1 == true) {
         request.session.registerotp1 = false
         otp = request.body.p1+request.body.p2+request.body.p3+request.body.p4+request.body.p5+request.body.p6
-        db.query('SELECT * FROM Otp WHERE owner_id = ?', [request.session.memberId], (err, results) => {
+        db.query('SELECT * FROM otp WHERE owner_id = ?', [request.session.memberId], (err, results) => {
             if (err) {
               console.log(err);
               response.status(500).send('Database error');
@@ -726,7 +726,7 @@ app.post('/registerPasswordAuth', function(request, response) {
     const lastname = request.session.lastname;
     const password = request.body.password;
     // Insert the user into the database
-    db.query('INSERT INTO Users (firstname, lastname, passcode) VALUES (?, ?, ?)', [firstname, lastname, password], (err, results) => {
+    db.query('INSERT INTO users (firstname, lastname, passcode) VALUES (?, ?, ?)', [firstname, lastname, password], (err, results) => {
         if (err) {
         // If there's an error executing the query, send an error response
         console.log('Error executing query:', err);
@@ -744,7 +744,7 @@ app.post('/registerPasswordAuth', function(request, response) {
         const memberId = request.session.memberId; // ID of the member you want to update
         console.log(memberId);
         const insertedId = results.insertId;
-        let sql = 'UPDATE Members SET registered = 1 WHERE id = ?';
+        let sql = 'UPDATE members SET registered = 1 WHERE id = ?';
 
         db.query(sql, [memberId], (error, results) => {
           if (error) {
@@ -763,7 +763,7 @@ app.post('/registerPasswordAuth', function(request, response) {
         });
         
         console.log(insertedId)
-        sql = 'INSERT INTO UserEmails SET ?';
+        sql = 'INSERT INTO useremails SET ?';
         const emailData = {
             email: request.session.email,
             owner_id: insertedId,
@@ -865,11 +865,11 @@ app.post('/addMember', function(req, res) {
                 res.end();              
             } else {
                 // Execute the SQL query to insert the data into the table
-                const query = 'INSERT INTO Members (firstname, lastname, email, registered) VALUES (?, ?, ?, ?)';
+                const query = 'INSERT INTO members (firstname, lastname, email, registered) VALUES (?, ?, ?, ?)';
                 db.query(query, [firstname, lastname, email, 0], (error, results) => {
                     if (error) {
                     console.error('Error inserting data:', error);
-                    message = "Error occured while inserting member information into Members table.";
+                    message = "Error occured while inserting member information into members table.";
                     let finalMessage = `
                     <html>
                         <body style="background-color: rgb(162, 205, 248);">
@@ -903,16 +903,16 @@ app.post('/deleteMember', function(req, res) {
     if (req.session.loggedin && req.session.admin == true) {
         const { firstname, lastname, email } = req.body;
         
-        db.query('SELECT * FROM Members WHERE firstname = ? AND lastname = ? AND email = ?', [firstname, lastname, email], (error, results) => {
+        db.query('SELECT * FROM members WHERE firstname = ? AND lastname = ? AND email = ?', [firstname, lastname, email], (error, results) => {
             if (results.length > 0) {
                 const memberId = results[0].id;
                 console.log(memberId);
                 // Execute the SQL query to insert the data into the table
-                let query = 'DELETE FROM Members WHERE id = ?';
+                let query = 'DELETE FROM members WHERE id = ?';
                 db.query(query, [memberId], (error, results) => {
                     if (error) {
                         console.error('Error deleting data:', error);
-                        message = "Error occured while deleting member information from the Members table.";
+                        message = "Error occured while deleting member information from the members table.";
                         let finalMessage = `
                         <html>
                             <body style="background-color: rgb(162, 205, 248);">
@@ -923,12 +923,12 @@ app.post('/deleteMember', function(req, res) {
                         res.status(500).send(finalMessage);
                         res.end();
                     } else {
-                        db.query('SELECT * FROM Users WHERE firstname = ? AND lastname = ?', [firstname, lastname], (error, results) => {
+                        db.query('SELECT * FROM users WHERE firstname = ? AND lastname = ?', [firstname, lastname], (error, results) => {
                             if (results.length > 0) {
-                            db.query('DELETE FROM Users WHERE firstname = ? AND lastname = ?', [firstname, lastname], (err, results) => {
+                            db.query('DELETE FROM users WHERE firstname = ? AND lastname = ?', [firstname, lastname], (err, results) => {
                                 if (err) {
                                 console.error('Error:', err);
-                                message = "Error occured while deleting member information from the Members table.";
+                                message = "Error occured while deleting member information from the members table.";
                                 let finalMessage = `
                                 <html>
                                     <body style="background-color: rgb(162, 205, 248);">
@@ -939,12 +939,12 @@ app.post('/deleteMember', function(req, res) {
                                 res.status(500).send(finalMessage);
                                 res.end();
                                 } else {
-                                    db.query('SELECT * FROM Members WHERE firstname = ? AND lastname = ? AND email = ?', [firstname, lastname, email], (error, results) => {
+                                    db.query('SELECT * FROM members WHERE firstname = ? AND lastname = ? AND email = ?', [firstname, lastname, email], (error, results) => {
                                         if (results.length > 0) {
-                                            db.query('DELETE FROM UserEmails WHERE firstname = ? AND lastname = ? AND email = ?', [email, firstname, lastname], (err, results) => {
+                                            db.query('DELETE FROM useremails WHERE firstname = ? AND lastname = ? AND email = ?', [email, firstname, lastname], (err, results) => {
                                                 if (err) {
                                                   console.error('Error:', err);
-                                                  message = "Error occured while deleting member information from the Members table.";
+                                                  message = "Error occured while deleting member information from the members table.";
                                                   let finalMessage = `
                                                   <html>
                                                       <body style="background-color: rgb(162, 205, 248);">
@@ -1024,7 +1024,7 @@ app.post('/deleteMember', function(req, res) {
 app.post('/memberList', function(req, res) {
     if (req.session.loggedin && req.session.admin == true) {
 
-        db.query('SELECT * FROM Members', (error, results) => {
+        db.query('SELECT * FROM members', (error, results) => {
             if (results.length > 0) {
                 console.log(results);
                 message = results;
@@ -1071,7 +1071,7 @@ app.post('/memberList', function(req, res) {
 app.post('/userList', function(req, res) {
     if (req.session.loggedin && req.session.admin == true) {
 
-        db.query('SELECT * FROM Users', (error, results) => {
+        db.query('SELECT * FROM users', (error, results) => {
             if (results.length > 0) {
                 console.log(results);
                 message = results;
@@ -1152,7 +1152,7 @@ app.get('/schedule', async function (request, response) {
       const court5 = court1;
       try {
         const results = await new Promise((resolve, reject) => {
-          const query = 'SELECT * FROM CALENDAR WHERE hour >= ? AND hour <= ? and date = ? and court_id = ?';
+          const query = 'SELECT * FROM calendar WHERE hour >= ? AND hour <= ? and date = ? and court_id = ?';
           db.query(query, [hbaopenhour, hbaendhour, formattedDate, court5], (error, results) => {
             if (error) {
               reject(error);
@@ -1170,7 +1170,7 @@ app.get('/schedule', async function (request, response) {
             if (ownerId != null) {
               try {
                 const result = await new Promise((resolve, reject) => {
-                  db.query("SELECT * FROM USERS WHERE id = ?", [ownerId], (error, result) => {
+                  db.query("SELECT * FROM users WHERE id = ?", [ownerId], (error, result) => {
                     if (error) {
                       reject(error);
                     } else {
@@ -1274,7 +1274,7 @@ app.get('/reserve', (req, res) => {
                     res.render('reserve', { data: decodedData });
                 } else {
                     db.query(
-                        'SELECT * FROM CALENDAR WHERE date = ? AND hour = ? AND court_id = ? AND owner_id = ?',
+                        'SELECT * FROM calendar WHERE date = ? AND hour = ? AND court_id = ? AND owner_id = ?',
                         [decodedData.date, formatHourToTime3(decodedData.rtime), decodedData.court, req.session.userId],
                         (err, res6) => {
                             if (res6.length > 0) {
@@ -1304,7 +1304,7 @@ app.post('/reserveAuth', (req, res) => {
       console.log(ownerId, date, formatHourToTime3(time), court);
 
       const query = `
-        UPDATE CALENDAR 
+        UPDATE calendar 
         SET owner_id = ?
         WHERE date = ? AND hour = ? AND court_id = ?
       `;
@@ -1361,9 +1361,9 @@ app.post('/deleteScheduleOwnerId', (req, res) => {
         ownerId = req.body.userId
         court = req.body.court
         console.log(date, time, ownerId, court)
-        db.query('SELECT * FROM CALENDAR WHERE date = ? and hour = ? and owner_id = ? and court_id = ?', [date, time, ownerId, court], (err, res5) => {
+        db.query('SELECT * FROM calendar WHERE date = ? and hour = ? and owner_id = ? and court_id = ?', [date, time, ownerId, court], (err, res5) => {
             if (res5 && res5.length > 0) {
-                db.query('UPDATE CALENDAR SET owner_id = ? WHERE date = ? and hour = ? and owner_id = ? and court_id = ?' , [null, date, time, ownerId, court],(err, res6) => {
+                db.query('UPDATE calendar SET owner_id = ? WHERE date = ? and hour = ? and owner_id = ? and court_id = ?' , [null, date, time, ownerId, court],(err, res6) => {
                     console.log(res6.affectedRows, res6)
                     if (res6 && res6.affectedRows > 0) {
                         res.redirect(req.session.sdData);

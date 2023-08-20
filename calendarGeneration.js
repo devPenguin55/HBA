@@ -30,7 +30,7 @@ function generateNewDataForCurrentMonth() {
     const currentMonthDate = new Date(currentYear, currentMonth - 1, 1); // 1st day of the current month
     const nextMonthDate = new Date(currentYear, currentMonth, 1); // 1st day of the next month
   
-    const deleteQuery = 'TRUNCATE TABLE CALENDAR';
+    const deleteQuery = 'TRUNCATE TABLE calendar ';
     connection.query(deleteQuery, (err, result) => {
       if (err) {
         console.error('Error deleting old data:', err);

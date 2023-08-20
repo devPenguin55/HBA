@@ -1,1 +1,1 @@
-DESCRIBE users
+SELECT * FROM courts
