@@ -850,7 +850,7 @@ app.get('/adminHub', function(request, response) {
 app.post('/addMember', function(req, res) {
     if (req.session.loggedin && req.session.admin == true) {
         const { firstname, lastname, email} = req.body;
-        db.query('SELECT * FROM Members WHERE firstname = ? AND lastname = ? AND email = ?', [firstname, lastname, email], (error, results) => {
+        db.query('SELECT * FROM members WHERE firstname = ? AND lastname = ? AND email = ?', [firstname, lastname, email], (error, results) => {
             if (results.length > 0) {
                 console.error('Member\'s info already exists');
                 message = "Member's information already exists";
