@@ -59,13 +59,13 @@ const mailOptions = {
     text: 'HBA server up and running!'
 };
 
-transporter.sendMail(mailOptions, function(error, info) {
-    if (error) {
-      console.log(error);
-    } else {
-      console.log('Email sent: ' + info.response);
-    }
-});
+// transporter.sendMail(mailOptions, function(error, info) {
+//     if (error) {
+//       console.log(error);
+//     } else {
+//       console.log('Email sent: ' + info.response);
+//     }
+// });
 
 
 console.log(credentials.user, credentials.pass)
@@ -1152,15 +1152,17 @@ app.get('/schedule', async function (request, response) {
       const court5 = court1;
       try {
         const results = await new Promise((resolve, reject) => {
-          const query = 'SELECT * FROM calendar WHERE hour >= ? AND hour <= ? and date = ? and court_id = ?';
-          db.query(query, [hbaopenhour, hbaendhour, formattedDate, court5], (error, results) => {
-            if (error) {
-              reject(error);
-            } else {
-              resolve(results);
-            }
+            setTimeout(() => {  // Add a delay of 5 seconds
+              const query = 'SELECT * FROM calendar WHERE hour >= ? AND hour <= ? and date = ? and court_id = ?';
+              db.query(query, [hbaopenhour, hbaendhour, formattedDate, court5], (error, results) => {
+                if (error) {
+                  reject(error);
+                } else {
+                  resolve(results);
+                }
+              });
+            }, 5000); // 5000 milliseconds = 5 seconds
           });
-        });
         
         if (results.length > 0) {
           owners = [];
@@ -1243,7 +1245,10 @@ app.get('/schedule', async function (request, response) {
           console.log(owners, court1)
           response.render('schedule', { data: data });
         } else {
-          response.status(500).send("<html><body style='background-color: rgb(162, 205, 248);'><h1 style='text-align: center; color: rgb(50, 112, 192); font-family: system-ui; font-size: 40px;'>No schedule available for month, wait for the next month</h1></body></html>");
+          console.log("ssssssss")
+          console.log(results)
+
+          response.status(500).send("<html><body style='background-color: rgb(162, 205, 248);'><h1 style='text-align: center; color: rgb(50, 112, 192); font-family: system-ui; font-size: 40px;'>Encountered promise error. Reload a couple times.</h1><h1>If it's the last day of the month then wait until the next month</h1></body></html>");
           return;
         }
       } catch (error) {
@@ -1266,7 +1271,7 @@ app.get('/reserve', (req, res) => {
         }
         
         db.query(
-            'SELECT * FROM CALENDAR WHERE date = ? AND hour = ? AND court_id = ? AND owner_id IS NULL',
+            'SELECT * FROM calendar WHERE date = ? AND hour = ? AND court_id = ? AND owner_id IS NULL',
             [decodedData.date, formatHourToTime3(decodedData.rtime), decodedData.court],
             (err, res5) => {
                 if (res5.length > 0) {
@@ -1314,7 +1319,7 @@ app.post('/reserveAuth', (req, res) => {
         return `00:00:${formattedHour}`;
       }
 
-      db.query('SELECT * FROM CALENDAR WHERE date = ? and hour = ? and court_id = ? and owner_id IS NULL',  [date, formatHourToTime3(time), court], (err, res5) => {
+      db.query('SELECT * FROM calendar WHERE date = ? and hour = ? and court_id = ? and owner_id IS NULL',  [date, formatHourToTime3(time), court], (err, res5) => {
         if (res5.length > 0) {
             db.query(query, [ownerId, date, formatHourToTime3(time), court], (err, res1) => {
             if (err) {

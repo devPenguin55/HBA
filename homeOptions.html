@@ -88,9 +88,8 @@
       background-color: rgb(45, 89, 165);
     }
     /* back to regular */
-    .grid-container {
-        width: 300px;
-        margin: 0 auto;;
+    #popupd {
+        margin: 80 auto;
         text-align: center;
         margin-top: 30px;
         font-family: system-ui;
@@ -99,7 +98,8 @@
         border-radius: 15px;
         padding-top: 5px;
         padding-bottom: 20px;
-        border: 2px solid rgb(76, 143, 210);
+        border: 0px solid rgb(76, 143, 210);
+        display: flex;
     }
 
 
@@ -131,8 +131,7 @@
     <button id="calendarButton" class="buttons">Calendar</button>
     <button id="courtb" class="buttons">Court</button>
     <button id='sched' type="submit" class="buttons" onclick="scheduleMake()">View Schedule</button>
-    <div style="display: none;position:absolute;top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgb(186, 218, 255);z-index: 55; top: 123px;display: grid; grid-template-columns: repeat(auto-fill, 80px); gap: 10px;align-items: center; justify-items: center; " id="popupd" class="container"></div>
-  </div>
+    <div style="position: absolute;left: 50%;transform: translate(-50%, -50%);color: rgb(186, 218, 255); z-index: 55;top: 50px;grid-template-columns: repeat(auto-fill, 80px); gap: 10px;place-items: center;"id="popupd"></div>
   
   <!-- Calendar popup container -->
   <div class="calendar-popup" id="calendarPopup">
@@ -197,31 +196,32 @@
       openCalendarPopup();
       event.stopPropagation();
     });
-    document.getElementById('courtb').addEventListener('click', function(event) {
+    document.addEventListener('click', function(event) {
       
       let x = document.getElementById('popupd');
       if (event.target == document.getElementById('courtb')) {
-        x.style.display = 'block'
         while (x.firstChild) {
           x.removeChild(x.firstChild);
         }
         for (let i = 1; i <= 6; i++) {
           const smallElement = document.createElement('div');
           smallElement.classList.add('small-element');
-          smallElement.classList.add('grid-container');
+
           smallElement.textContent = i;
           x.appendChild(smallElement);
         }
+        console.log("inside")
+        x.style.border = "2px solid rgb(76, 143, 210)"
       } else {
-        while (x.firstChild) {
-          x.removeChild(x.firstChild);
+        if (event.target !== x && !event.target.classList.contains('small-element')) {
+          console.log("Clicked off")
+          while (x.firstChild) {
+            x.removeChild(x.firstChild);
+          }
+          x.style.border = "none"
         }
-        x.style.display = 'none'
       }
-      event.stopPropagation();
-    });
-    // Close the calendar popup when clicking outside of it
-    window.addEventListener("click", function(event) {
+ 
       if (
         event.target !== calendarPopup && 
         event.target !== calendarButton &&
@@ -229,7 +229,10 @@
       ) {
         closeCalendarPopup();
       }
+      event.stopPropagation();
     });
+    // Close the calendar popup when clicking outside of it
+    
   </script>
 </body>
 </html>

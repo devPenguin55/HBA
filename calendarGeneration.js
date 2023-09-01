@@ -75,18 +75,9 @@ console.log("calendar generation file started")
 console.log(hbaopenhour, hbaendhour)
 
 // Schedule the task to run at the beginning of each month
-cron.schedule('* * * * *', () => {
+cron.schedule('0 0 1 * *', () => {
   console.log('Running calendar generation job...');
   generateNewDataForCurrentMonth();
-  setTimeout(() => {
-    connection.query("SELECT * FROM calendar", (err, res) => {
-      if (err) {
-        console.error('Error describing table:', err);
-      } else {
-        console.log('Table description:', res);
-      }
-    });
-  }, 5000); // Delay of 5000 milliseconds (5 seconds)
 });
 
 connection.connect((err) => {
@@ -95,14 +86,5 @@ connection.connect((err) => {
     } else {
         console.log("Connected to database")
         generateNewDataForCurrentMonth();
-        setTimeout(() => {
-          connection.query("SELECT * FROM calendar", (err, res) => {
-            if (err) {
-              console.error('Error describing table:', err);
-            } else {
-              console.log('Table description:', res);
-            }
-          });
-        }, 5000); // Delay of 5000 milliseconds (5 seconds)
     }
   });
